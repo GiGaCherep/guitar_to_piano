@@ -29,8 +29,14 @@
     <Folder Include="templates\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="css\style.css" />
+    <Content Include="docker-compose.yml" />
+    <Content Include="README.md" />
+    <Content Include="requirements.txt" />
+    <Content Include="templates\chords_result.html" />
     <Content Include="templates\index.html" />
+    <Content Include="Dockerfile" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

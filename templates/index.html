@@ -4,83 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Гитарные аккорды → фортепиано</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-<div class="container">
-    <h1>🎸 → 🎹 Аккорды</h1>
+    <div class="container">
+        <h1>🎸 → 🎹 Аккорды</h1>
 
-    <form method="post">
-        <!-- Поле ручного ввода -->
-        <div class="form-group">
-            <label>Введите аккорд (например, <code>Cmaj7, F#m, Bb7</code>):</label>
-            <input type="text" name="chord_input" placeholder="fmaj7, C#m, Bb7">
-        </div>
+        <!-- Flash сообщения -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
 
-        <div class="divider">— или соберите из частей —</div>
-
-        <!-- Выпадающие списки (полные) -->
-        <div class="row">
-            <div class="col">
-                <label>Нота</label>
-                <select name="note">
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                    <option value="E">E</option>
-                    <option value="F">F</option>
-                    <option value="G">G</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                </select>
+        <!-- Форма преобразования аккорда -->
+        <form method="post">
+            <div class="form-group">
+                <label>Введите аккорд (например, <code>Cmaj7, F#m, Bb7</code>):</label>
+                <input type="text" name="chord_input" placeholder="fmaj7, C#m, Bb7">
             </div>
-            <div class="col">
-                <label>Альтерация</label>
-                <select name="accidental">
-                    <option value="">нет</option>
-                    <option value="b">♭ бемоль</option>
-                    <option value="#">♯ диез</option>
-                </select>
+            <div class="divider">— или соберите из частей —</div>
+            <div class="row">
+                <div class="col"><label>Нота</label><select name="note"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option></select></div>
+                <div class="col"><label>Альтерация</label><select name="accidental"><option value="">нет</option><option value="b">♭ бемоль</option><option value="#">♯ диез</option></select></div>
+                <div class="col"><label>Тип</label><select name="chord_type"><option value="maj">мажор</option><option value="min">минор</option><option value="sus2">sus2</option><option value="sus4">sus4</option><option value="dim">dim</option><option value="aug">aug</option><option value="7">7 (доминант)</option></select></div>
+                <div class="col"><label>Расширение</label><select name="extension"><option value="">нет</option><option value="7">7</option><option value="maj7">maj7</option><option value="6">6</option></select></div>
             </div>
-            <div class="col">
-                <label>Тип</label>
-                <select name="chord_type">
-                    <option value="maj">мажор</option>
-                    <option value="min">минор</option>
-                    <option value="sus2">sus2</option>
-                    <option value="sus4">sus4</option>
-                    <option value="dim">dim</option>
-                    <option value="aug">aug</option>
-                    <option value="7">7 (доминант)</option>
-                </select>
-            </div>
-            <div class="col">
-                <label>Расширение</label>
-                <select name="extension">
-                    <option value="">нет</option>
-                    <option value="7">7</option>
-                    <option value="maj7">maj7</option>
-                    <option value="6">6</option>
-                </select>
-            </div>
-        </div>
+            <button type="submit" class="btn">✨ Создать аккорд</button>
+        </form>
 
-        <button type="submit" class="btn">✨ Создать аккорд</button>
-    </form>
-
-    {% if error %}
+        <!-- Результат преобразования аккорда -->
+        {% if error %}
         <div class="error">{{ error }}</div>
-    {% endif %}
-
-    {% if chord_notes %}
+        {% endif %}
+        {% if chord_notes %}
         <div class="result">
             <h2>🎵 Ноты аккорда:</h2>
             <p class="notes">{{ chord_notes | join(' · ') }}</p>
             <h3>🎹 Клавиатура (октава 3):</h3>
             {% if img_data %}
-                <img src="{{ img_data }}" alt="Фортепианная клавиатура" class="piano-image">
+            <img src="{{ img_data }}" alt="Фортепианная клавиатура" class="piano-image">
             {% endif %}
         </div>
-    {% endif %}
-</div>
+        {% endif %}
+
+        <hr>
+
+        <!-- Форма парсинга аккордов -->
+        <h2>🎸 Парсинг аккордов с AmDm.ru</h2>
+        <form action="/parse-chords" method="post">
+            <div class="form-group">
+                <label>Введите URL песни с AmDm.ru:</label>
+                <input type="text" name="chord_url" placeholder="https://amdm.ru/akkordi/...">
+            </div>
+            <button type="submit" class="btn">🔍 Найти аккорды</button>
+        </form>
+
+        <!-- Результаты парсинга (только уникальные аккорды) -->
+        {% if parsed_chords %}
+        <div class="result">
+            <h2>🎵 Уникальные аккорды ({{ parsed_chords|length }})</h2>
+            <p>Источник: <a href="{{ parsed_url }}" target="_blank" rel="noopener noreferrer">{{ parsed_url }}</a></p>
+            <table class="chords-table">
+                <thead>
+                    <tr><th>Аккорд</th><th>Клавиатура (октава 3)</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in parsed_chords %}
+                    <tr>
+                        <td class="chord-name">{{ item.name }}</td>
+                        <td class="piano-cell">
+                            {% if item.img_data %}
+                            <img src="{{ item.img_data }}" alt="Клавиатура для {{ item.name }}" class="piano-image">
+                            {% else %}
+                            <span class="error">не удалось построить</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
